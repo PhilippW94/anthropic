@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinTechCo — Fee Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f7fa; color: #1a1a2e;
+    display: flex; justify-content: center; padding: 48px 16px;
+  }
+  .card {
+    background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    max-width: 520px; width: 100%; padding: 40px;
+  }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .subtitle { color: #666; font-size: 14px; margin-bottom: 28px; }
+  .policy-rule {
+    background: #f0f4ff; border-left: 3px solid #4361ee; padding: 12px 16px;
+    border-radius: 6px; font-size: 13px; margin-bottom: 24px; line-height: 1.5;
+  }
+  .fields { display: flex; gap: 12px; margin-bottom: 16px; }
+  .field { flex: 1; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+  .field input {
+    width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 15px; outline: none; transition: border .15s;
+  }
+  .field input:focus { border-color: #4361ee; }
+  button {
+    width: 100%; padding: 12px; background: #4361ee; color: #fff; border: none;
+    border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+  }
+  button:hover { background: #3a56d4; }
+  .result {
+    margin-top: 24px; border-top: 1px solid #eee; padding-top: 24px;
+    display: none;
+  }
+  .result.visible { display: block; }
+  .result-grid { display: flex; gap: 16px; margin-bottom: 16px; }
+  .result-box {
+    flex: 1; padding: 16px; border-radius: 8px; text-align: center;
+  }
+  .result-box .label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; margin-bottom: 6px; }
+  .result-box .value { font-size: 28px; font-weight: 700; }
+  .expected { background: #f0fdf4; color: #166534; }
+  .actual { background: #fef2f2; color: #991b1b; }
+  .actual.match { background: #f0fdf4; color: #166534; }
+  .status {
+    text-align: center; padding: 12px; border-radius: 8px; font-weight: 700;
+    font-size: 18px; letter-spacing: 1px;
+  }
+  .status.pass { background: #dcfce7; color: #166534; }
+  .status.fail { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>FinTechCo Fee Calculator</h1>
+  <p class="subtitle">Verify fee rounding against internal policy</p>
+
+  <div class="policy-rule" id="policyRule">Loading policy…</div>
+
+  <div class="fields">
+    <div class="field">
+      <label>Amount (cents)</label>
+      <input type="number" id="amount" value="199">
+    </div>
+    <div class="field">
+      <label>Fee (bps)</label>
+      <input type="number" id="bps" value="250">
+    </div>
+  </div>
+  <button id="calc">Recalculate</button>
+
+  <div class="result" id="result">
+    <div class="result-grid">
+      <div class="result-box expected">
+        <div class="label">Expected Fee</div>
+        <div class="value" id="expectedVal">—</div>
+      </div>
+      <div class="result-box actual" id="actualBox">
+        <div class="label">Actual Fee</div>
+        <div class="value" id="actualVal">—</div>
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+  let policyEdgeCases = [];
+
+  async function loadPolicy() {
+    const res = await fetch("/api/policy");
+    const data = await res.json();
+    document.getElementById("policyRule").textContent =
+      "Policy: " + data.feeRounding.rule + " " + data.feeRounding.notes.join(" ");
+    policyEdgeCases = data.edgeCases;
+  }
+
+  async function calculate() {
+    const amountCents = Number(document.getElementById("amount").value);
+    const feeBps = Number(document.getElementById("bps").value);
+
+    const res = await fetch(`/api/fee?amountCents=${amountCents}&feeBps=${feeBps}`);
+    const data = await res.json();
+    const actual = data.feeCents;
+
+    const edge = policyEdgeCases.find(
+      (e) => e.amountCents === amountCents && e.feeBps === feeBps
+    );
+    const expected = edge ? edge.expectedFeeCents : Math.round((amountCents * feeBps) / 10000);
+
+    const pass = actual === expected;
+
+    document.getElementById("expectedVal").textContent = expected + "¢";
+    document.getElementById("actualVal").textContent = actual + "¢";
+
+    const actualBox = document.getElementById("actualBox");
+    actualBox.classList.toggle("match", pass);
+
+    const status = document.getElementById("status");
+    status.textContent = pass ? "PASS" : "FAIL";
+    status.className = "status " + (pass ? "pass" : "fail");
+
+    document.getElementById("result").classList.add("visible");
+  }
+
+  document.getElementById("calc").addEventListener("click", calculate);
+  loadPolicy().then(calculate);
+</script>
+</body>
+</html>

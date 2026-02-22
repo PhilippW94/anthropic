@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "fee_policy_server": {
+      "command": "node",
+      "args": ["mcp/fee-policy-server.js"],
+      "env": {}
+    }
+  }
+}

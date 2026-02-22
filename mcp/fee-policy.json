@@ -1,0 +1,13 @@
+{
+  "feeRounding": {
+    "rule": "Round to nearest cent (half-up).",
+    "notes": [
+      "Fees are calculated as (amountCents * feeBps) / 10000.",
+      "Rounding must be Math.round for positive amounts."
+    ]
+  },
+  "edgeCases": [
+    { "amountCents": 199, "feeBps": 250, "expectedFeeCents": 5, "why": "4.975 rounds to 5" },
+    { "amountCents": 1, "feeBps": 1, "expectedFeeCents": 0, "why": "0.0001 rounds to 0" }
+  ]
+}
