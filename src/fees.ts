@@ -8,6 +8,5 @@ export function calculateFeeCents(amountCents: number, feeBps: number): number {
 
   const fee = (amountCents * feeBps) / 10_000;
 
-  // BUG: floors instead of rounding to nearest cent
-  return Math.floor(fee);
+  return Math.round(fee);
 }
