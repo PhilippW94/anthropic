@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const PORT = process.env.PORT || 3000;
 
-const html = readFileSync(join(__dirname, "index.html"), "utf-8");
+const htmlPath = join(__dirname, "index.html");
 const policy = JSON.parse(readFileSync(join(root, "mcp", "fee-policy.json"), "utf-8"));
 
 const server = createServer(async (req, res) => {
@@ -15,7 +15,7 @@ const server = createServer(async (req, res) => {
 
   if (url.pathname === "/" || url.pathname === "/index.html") {
     res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(html);
+    res.end(readFileSync(htmlPath, "utf-8"));
     return;
   }
 

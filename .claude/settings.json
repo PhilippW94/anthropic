@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "_switchToDefaultMode": "To revert: change defaultMode to 'default' and add 'allow':[] and 'deny':[] arrays"
+  }
+}
